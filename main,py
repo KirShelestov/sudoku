@@ -1,0 +1,84 @@
+def num_zero(set):
+    count = 0
+    for i in range(1, 10):
+        if not set & (1 << i):
+            count += 1
+    return count
+
+def set_bit(b, row, col, k):
+    b[0][row] |= (1 << k)
+    b[1][col] |= (1 << k)
+    b[2][3 * (row // 3) + col // 3] |= (1 << k)
+
+def clear_bit(b, row, col, k):
+    b[0][row] &= ~(1 << k)
+    b[1][col] &= ~(1 << k)
+    b[2][3 * (row // 3) + col // 3] &= ~(1 << k)
+
+def solve_sudoku_helper(a, b):
+    best_set = 0
+    best_size = 9
+    best_row = -1
+    best_col = -1
+
+    for i in range(9):
+        for j in range(9):
+            if a[i][j] == 0:
+                set_val = b[0][i] | b[1][j] | b[2][3 * (i // 3) + j // 3]
+                size = num_zero(set_val)
+
+                if size < best_size:
+                    best_row = i
+                    best_col = j
+                    best_set = set_val
+                    best_size = size
+
+                if size == 0:
+                    return False
+
+    if best_row == -1:
+        return True
+
+    for k in range(1, 10):
+        if not best_set & (1 << k):
+            a[best_row][best_col] = k
+            set_bit(b, best_row, best_col, k)
+
+            if solve_sudoku_helper(a, b):
+                return True
+
+            clear_bit(b, best_row, best_col, k)
+            a[best_row][best_col] = 0
+
+    return False
+
+def solve_sudoku(a):
+    b = [[0]*9 for _ in range(3)]
+
+    for i in range(9):
+        for j in range(9):
+            set_bit(b, i, j, a[i][j])
+
+    solve_sudoku_helper(a, b)
+
+# Main function
+n = int(input())
+
+for _ in range(n):
+    sudoku = [[0]*9 for _ in range(9)]
+
+    for i in range(9):
+        line = input()
+
+        for j in range(9):
+            if line[j] == '.':
+                sudoku[i][j] = 0
+            else:
+                sudoku[i][j] = int(line[j])
+
+    solve_sudoku(sudoku)
+
+    for row in sudoku:
+        print(''.join(map(str, row)))
+
+    print()
